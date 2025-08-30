@@ -8,6 +8,8 @@
   <link rel="canonical" href="https://horoscopohoje.app/" />
   <meta name="theme-color" content="#f4ecff" />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <!-- Preload do GIF do canto -->
+  <link rel="preload" as="image" href="https://cdn.pixabay.com/animation/2023/11/29/03/39/03-39-03-19_512.gif" />
   <style>
     :root{
       --bg:#ffffff; --bg-grad:#f6efff; --text:#231b3a; --muted:#6f5c93; --stroke:#eadbff;
@@ -22,28 +24,58 @@
     header{display:flex;align-items:center;gap:10px;margin:6px 0 16px}
     header h1{margin:0;font-size:28px;font-weight:900;letter-spacing:.3px;
       background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+
     .view{display:none}.view.active{display:block}
+
     .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
     @media (min-width:720px){.grid{grid-template-columns:repeat(4,1fr)}}
     .sign-tile{display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px;border:1px solid var(--stroke);border-radius:16px;background:#fff;transition:transform .12s,box-shadow .12s}
     .sign-tile:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(138,61,255,.18)}
     .sign-tile img{width:88px;height:88px;object-fit:contain}
     .sign-name{font-weight:800}.sign-dates{color:var(--muted);font-size:12px}
+
+    /* Botão START: maiúsculo, degradê, pulsante e estado de carregamento */
     .btn{display:inline-flex;align-items:center;justify-content:center;padding:12px 18px;border-radius:14px;border:0;cursor:pointer;text-transform:uppercase;letter-spacing:.4px;font-weight:900;color:#fff;background:linear-gradient(135deg,var(--g1),var(--g2) 55%,var(--g3));box-shadow:var(--btn-shadow);transition:transform .08s,filter .12s}
     .btn:hover{filter:brightness(1.05)} .btn:active{transform:translateY(1px)}
-    .back{margin-bottom:10px} .start{margin:14px 0 22px}
+    .btn.pulse{animation:pulse 1.4s ease-in-out infinite}
+    @keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.035)}100%{transform:scale(1)}}
+    .btn.loading{position:relative;pointer-events:none;opacity:.92;filter:grayscale(.05)}
+    .btn.loading::after{content:"";width:16px;height:16px;border:2px solid rgba(255,255,255,.55);border-top-color:#fff;border-radius:50%;position:absolute;right:12px;animation:spin .8s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .btn:disabled{opacity:.55;cursor:not-allowed;animation:none}
+
+    .back{margin-bottom:10px}
+    .start{margin:14px 0 22px}
+
     .sign-head{display:flex;align-items:center;gap:14px;margin:10px 0 4px}
     .sign-head img{width:66px;height:66px;object-fit:contain}
     .sign-title{display:flex;flex-direction:column;gap:2px}
     .sign-title h2{margin:0;font-size:22px}.sign-title small{color:var(--muted)}
-    .section{margin:14px 0}.section h3{margin:0 0 8px;font-size:18px}.content{min-height:60px}
+
+    .section{margin:14px 0}
+    .section h3{margin:0 0 8px;font-size:18px;color:var(--g1)} /* TÍTULOS EM VERDE */
+    .content{min-height:60px}
     .divider{height:1px;background:linear-gradient(90deg,transparent,var(--stroke),transparent);margin:14px 0}
+
+    /* Skeleton do conteúdo */
     .skeleton{position:relative;overflow:hidden;background:linear-gradient(90deg,#f4ecff,#efe6ff,#f4ecff);min-height:60px;border-radius:8px}
     .skeleton::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(0,0,0,.06),transparent);animation:shimmer 1.4s infinite}
     @keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
-    .banner-wrap{margin:14px 0;display:none}
-    .banner{display:block;width:100%;border-radius:12px;border:1px solid var(--stroke);overflow:hidden}
-    .banner img{display:block;width:100%;height:auto}
+
+    /* Carrossel de promos (substitui banner) */
+    .carousel{display:none;position:relative;overflow:hidden;border-radius:12px;border:1px solid var(--stroke);margin-top:10px}
+    .carousel-track{display:flex;width:100%;transition:transform .45s ease}
+    .carousel a{flex:0 0 100%}
+    .carousel img{display:block;width:100%;height:auto}
+    .car-ctrl{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.85);border:0;width:36px;height:36px;border-radius:50%;cursor:pointer;font-weight:900}
+    .car-ctrl:active{transform:translateY(-50%) scale(.98)}
+    .car-prev{left:8px}.car-next{right:8px}
+
+    /* GIF fixo no canto inferior direito */
+    .corner-gif{position:fixed;right:14px;bottom:14px;width:42px;height:42px;border-radius:9px;overflow:hidden;z-index:60;border:1px solid rgba(0,0,0,.08);box-shadow:0 6px 16px rgba(0,0,0,.12)}
+    .corner-gif img{width:100%;height:100%;display:block}
+
+    /* Cookies */
     .cookies{position:fixed;left:12px;right:12px;bottom:12px;background:#ffffff;border:1px solid var(--stroke);border-radius:14px;padding:12px;display:none;z-index:50}
     .cookies.show{display:block}.cookies p{margin:0 0 8px;color:#3a2c61}.cookies .row{display:flex;gap:10px;flex-wrap:wrap}
     .cookies a{color:var(--accent)}
@@ -71,7 +103,7 @@
         </div>
       </div>
 
-      <button id="btnStart" class="btn start">START • GERAR ANÁLISE DE HOJE</button>
+      <button id="btnStart" class="btn start pulse">START • GERAR ANÁLISE DE HOJE</button>
 
       <div class="section" id="sec-rel">
         <h3>Relacionamentos</h3>
@@ -83,11 +115,21 @@
         <h3>Sorte</h3>
         <div class="content" id="sorte"><div class="skeleton"></div></div>
 
-        <!-- BANNER: só aparece após gerar -->
-        <div class="banner-wrap" id="bannerWrap">
-          <a class="banner" href="https://asa.bet" target="_blank" rel="noopener">
-            <img src="https://i.postimg.cc/05Hxmh95/i-Screen-Shoter-Google-Chrome-250830122200.jpg" alt="Oferta: cadastre-se e deposite 20 para ganhar giros grátis e bônus">
-          </a>
+        <!-- CARROSSEL (só aparece após gerar) -->
+        <div class="carousel" id="promoCarousel" aria-label="Ofertas">
+          <div class="carousel-track" id="promoTrack">
+            <a href="https://asa.bet" target="_blank" rel="noopener" aria-label="Abrir oferta 1">
+              <img src="https://i.postimg.cc/hPjN9qny/image.png" alt="Oferta especial 1">
+            </a>
+            <a href="https://asa.bet" target="_blank" rel="noopener" aria-label="Abrir oferta 2">
+              <img src="https://i.postimg.cc/QMpzX8gt/image.png" alt="Oferta especial 2">
+            </a>
+            <a href="https://asa.bet" target="_blank" rel="noopener" aria-label="Abrir oferta 3">
+              <img src="https://i.postimg.cc/LX83r2NG/image.png" alt="Oferta especial 3">
+            </a>
+          </div>
+          <button class="car-ctrl car-prev" id="carPrev" aria-label="Anterior">‹</button>
+          <button class="car-ctrl car-next" id="carNext" aria-label="Próximo">›</button>
         </div>
         <div class="divider"></div>
       </div>
@@ -104,6 +146,11 @@
       </div>
     </section>
   </div>
+
+  <!-- GIF fixo no canto -->
+  <a class="corner-gif" href="https://asa.bet" target="_blank" rel="noopener" aria-label="Ir para asa.bet">
+    <img src="https://cdn.pixabay.com/animation/2023/11/29/03/39/03-39-03-19_512.gif" alt="Atalho para oferta">
+  </a>
 
   <!-- Cookies -->
   <div id="cookies" class="cookies">
@@ -139,51 +186,142 @@
     const btnBack=document.getElementById("btnBack"),btnStart=document.getElementById("btnStart");
     const elName=document.getElementById("signName"),elDates=document.getElementById("signDates"),elImg=document.getElementById("signImg");
     const elRel=document.getElementById("relacionamentos"),elSor=document.getElementById("sorte"),elTra=document.getElementById("trabalho"),elAst=document.getElementById("astral");
-    const bannerWrap=document.getElementById("bannerWrap");
+    const promoCarousel=document.getElementById("promoCarousel"), promoTrack=document.getElementById("promoTrack");
+    const carPrev=document.getElementById("carPrev"), carNext=document.getElementById("carNext");
 
-    function renderGrid(){ grid.innerHTML=""; SIGNS.forEach(s=>{ const a=document.createElement("a"); a.className="sign-tile"; a.href=`#/${s.id}`;
-      a.innerHTML=`<img src="${s.img}" alt="${s.nome}"><div class="sign-name">${s.nome}</div><div class="sign-dates">${s.datas}</div>`; grid.appendChild(a); }); }
+    // ========= HELPERS =========
+    function todayISO(){ return new Date().toISOString().slice(0,10); }
+    function cacheKey(signId){ return `horo:${todayISO()}:${signId}`; }
+    function lockKey(signId){ return `horo:lock:${todayISO()}:${signId}`; }
+    function isLocked(signId){ return !!localStorage.getItem(lockKey(signId)); }
+    function lockToday(signId){ localStorage.setItem(lockKey(signId),"1"); }
 
-    function setView(hash){ const id=(hash||"").replace("#/","").trim(); const s=SIGNS.find(x=>x.id===id);
-      if(s){ elName.textContent=s.nome; elDates.textContent=s.datas; elImg.src=s.img; elImg.alt=s.nome;
-        [elRel,elSor,elTra,elAst].forEach(el=>el.innerHTML=`<div class="skeleton"></div>`);
-        btnStart.disabled=false; if(bannerWrap) bannerWrap.style.display="none";
-        homeView.classList.remove("active"); signView.classList.add("active"); }
-      else{ signView.classList.remove("active"); homeView.classList.add("active"); } }
-    window.addEventListener("hashchange",()=>setView(location.hash));
+    function msUntilMidnight(){
+      const now=new Date();
+      const midnight=new Date(now); midnight.setHours(24,0,0,0);
+      return midnight-now;
+    }
+    function scheduleMidnightRefresh(){
+      setTimeout(()=>{ // ao virar o dia, reavalia a tela atual
+        setView(location.hash);
+        scheduleMidnightRefresh();
+      }, msUntilMidnight()+1000);
+    }
+
+    // ========= GRID =========
+    function renderGrid(){
+      grid.innerHTML="";
+      SIGNS.forEach(s=>{
+        const a=document.createElement("a");
+        a.className="sign-tile"; a.href=`#/${s.id}`;
+        a.innerHTML=`<img src="${s.img}" alt="${s.nome}"><div class="sign-name">${s.nome}</div><div class="sign-dates">${s.datas}</div>`;
+        grid.appendChild(a);
+      });
+    }
+
+    // ========= VIEW =========
+    function setView(hash){
+      const id=(hash||"").replace("#/","").trim();
+      const s=SIGNS.find(x=>x.id===id);
+      if(s){
+        elName.textContent=s.nome; elDates.textContent=s.datas; elImg.src=s.img; elImg.alt=s.nome;
+
+        // carrega cache se existir
+        const cached=localStorage.getItem(cacheKey(s.id));
+        if(cached){
+          try{ paintSections(JSON.parse(cached)); }catch{ showSkeletons(); }
+        }else{
+          showSkeletons();
+        }
+
+        // botão: pulsante se não bloqueado; se bloqueado, desabilita
+        const locked=isLocked(s.id);
+        btnStart.disabled=locked;
+        btnStart.classList.toggle("pulse", !locked);
+        btnStart.classList.remove("loading");
+
+        // carrossel só aparece depois que gerar (ou se já houver cache hoje)
+        if((cached && JSON.parse(cached)?.sorte) || locked){ promoCarousel.style.display="block"; }
+        else { promoCarousel.style.display="none"; }
+
+        homeView.classList.remove("active"); signView.classList.add("active");
+      }else{
+        signView.classList.remove("active"); homeView.classList.add("active");
+      }
+    }
+
+    function showSkeletons(){
+      [elRel,elSor,elTra,elAst].forEach(el=>el.innerHTML=`<div class="skeleton"></div>`);
+      promoCarousel.style.display="none";
+    }
+
     btnBack.addEventListener("click",()=>{ location.hash=""; });
 
     btnStart.addEventListener("click",async()=>{
       const id=(location.hash||"").replace("#/",""); const s=SIGNS.find(x=>x.id===id); if(!s) return;
-      btnStart.disabled=true; const ok=await generateAnalysis(s.id,s.nome); btnStart.disabled=false; if(ok && bannerWrap) bannerWrap.style.display="block";
+
+      // Se já bloqueado hoje, não gera novamente
+      if(isLocked(s.id)) return;
+
+      btnStart.classList.add("loading"); btnStart.disabled=true; btnStart.classList.remove("pulse");
+      showSkeletons();
+
+      const ok=await generateAnalysis(s.id,s.nome);
+      btnStart.classList.remove("loading");
+      // trava até 00:00 (mantém resultados visíveis)
+      if(ok){ lockToday(s.id); promoCarousel.style.display="block"; }
     });
 
-    function todayISO(){ return new Date().toISOString().slice(0,10); }
-    function cacheKey(signId){ return `horo:${todayISO()}:${signId}`; }
-
     async function generateAnalysis(signId, signName){
-      const key=cacheKey(signId), cached=localStorage.getItem(key);
-      if(cached){ try{ paintSections(JSON.parse(cached)); return true; }catch{} }
-
+      const key=cacheKey(signId);
       const body={ sign:signId, sign_label:signName, date:todayISO() };
       try{
         const res=await fetch(API_URL,{ method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify(body) });
         if(!res.ok) throw new Error("Falha na API");
         const data=await res.json();
         const filled={ relacionamentos:data.relacionamentos||"", sorte:data.sorte||"", trabalho:data.trabalho||"", astral:data.astral||"" };
-        paintSections(filled); localStorage.setItem(key,JSON.stringify(filled)); return true;
-      }catch(err){ paintError(); console.error(err); return false; }
+        paintSections(filled);
+        localStorage.setItem(key,JSON.stringify(filled));
+        return true;
+      }catch(err){
+        paintError(); console.error(err); return false;
+      }
     }
 
-    function paintSections(d){ elRel.textContent=d.relacionamentos; elSor.textContent=d.sorte; elTra.textContent=d.trabalho; elAst.textContent=d.astral; }
-    function paintError(){ const msg="Não foi possível gerar a análise agora. Tente novamente em instantes."; [elRel,elSor,elTra,elAst].forEach(el=>el.textContent=msg); }
+    function paintSections(d){
+      elRel.textContent=d.relacionamentos; elSor.textContent=d.sorte; elTra.textContent=d.trabalho; elAst.textContent=d.astral;
+    }
+    function paintError(){
+      const msg="Não foi possível gerar a análise agora. Tente novamente em instantes.";
+      [elRel,elSor,elTra,elAst].forEach(el=>el.textContent=msg);
+    }
 
-    // Cookies
+    // ========= CARROSSEL =========
+    let carIndex=0, carTimer=null;
+    function showSlide(i){
+      const total=promoTrack.children.length;
+      carIndex=(i+total)%total;
+      promoTrack.style.transform=`translateX(-${carIndex*100}%)`;
+    }
+    function startAutoSlide(){
+      if(carTimer) clearInterval(carTimer);
+      carTimer=setInterval(()=>showSlide(carIndex+1), 4500);
+    }
+    carPrev.addEventListener("click",()=>{ showSlide(carIndex-1); startAutoSlide(); });
+    carNext.addEventListener("click",()=>{ showSlide(carIndex+1); startAutoSlide(); });
+
+    // ========= COOKIES =========
     const cookiesBox=document.getElementById("cookies"), cookiesAccept=document.getElementById("cookiesAccept"), COOKIE_KEY="cookieConsent";
     function checkCookies(){ if(!localStorage.getItem(COOKIE_KEY)) cookiesBox.classList.add("show"); }
     cookiesAccept?.addEventListener("click",()=>{ localStorage.setItem(COOKIE_KEY, JSON.stringify({acceptedAt:Date.now()})); cookiesBox.classList.remove("show"); });
 
-    renderGrid(); setView(location.hash); checkCookies();
+    // ========= INIT =========
+    renderGrid();
+    setView(location.hash);
+    window.addEventListener("hashchange",()=>setView(location.hash));
+    checkCookies();
+    scheduleMidnightRefresh();
+    startAutoSlide();
   </script>
 </body>
 </html>
