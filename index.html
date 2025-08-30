@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Horóscopo do Dia • horoscopohoje.app</title>
+  <meta name="description" content="Horóscopo do dia por signo com Relacionamentos, Sorte, Trabalho e Astral." />
+  <link rel="canonical" href="https://horoscopohoje.app/" />
+  <meta name="theme-color" content="#f4ecff" />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#ffffff; --bg-grad:#f6efff; --text:#231b3a; --muted:#6f5c93; --stroke:#eadbff;
+      --accent:#8a3dff; --accent2:#ff4fb6;
+      --g1:#16a34a; --g2:#22c55e; --g3:#a3e635; --btn-shadow:0 12px 26px rgba(34,197,94,.25);
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;color:var(--text);font-family:Montserrat,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial;background:
+      radial-gradient(1200px 800px at 20% -10%, var(--bg-grad) 0%, #fff 55%), #fff;}
+    a{color:inherit;text-decoration:none}
+    .wrapper{max-width:1120px;margin:0 auto;padding:22px}
+    header{display:flex;align-items:center;gap:10px;margin:6px 0 16px}
+    header h1{margin:0;font-size:28px;font-weight:900;letter-spacing:.3px;
+      background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+    .view{display:none}.view.active{display:block}
+    .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+    @media (min-width:720px){.grid{grid-template-columns:repeat(4,1fr)}}
+    .sign-tile{display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px;border:1px solid var(--stroke);border-radius:16px;background:#fff;transition:transform .12s,box-shadow .12s}
+    .sign-tile:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(138,61,255,.18)}
+    .sign-tile img{width:88px;height:88px;object-fit:contain}
+    .sign-name{font-weight:800}.sign-dates{color:var(--muted);font-size:12px}
+    .btn{display:inline-flex;align-items:center;justify-content:center;padding:12px 18px;border-radius:14px;border:0;cursor:pointer;text-transform:uppercase;letter-spacing:.4px;font-weight:900;color:#fff;background:linear-gradient(135deg,var(--g1),var(--g2) 55%,var(--g3));box-shadow:var(--btn-shadow);transition:transform .08s,filter .12s}
+    .btn:hover{filter:brightness(1.05)} .btn:active{transform:translateY(1px)}
+    .back{margin-bottom:10px} .start{margin:14px 0 22px}
+    .sign-head{display:flex;align-items:center;gap:14px;margin:10px 0 4px}
+    .sign-head img{width:66px;height:66px;object-fit:contain}
+    .sign-title{display:flex;flex-direction:column;gap:2px}
+    .sign-title h2{margin:0;font-size:22px}.sign-title small{color:var(--muted)}
+    .section{margin:14px 0}.section h3{margin:0 0 8px;font-size:18px}.content{min-height:60px}
+    .divider{height:1px;background:linear-gradient(90deg,transparent,var(--stroke),transparent);margin:14px 0}
+    .skeleton{position:relative;overflow:hidden;background:linear-gradient(90deg,#f4ecff,#efe6ff,#f4ecff);min-height:60px;border-radius:8px}
+    .skeleton::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(0,0,0,.06),transparent);animation:shimmer 1.4s infinite}
+    @keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+    .banner-wrap{margin:14px 0;display:none}
+    .banner{display:block;width:100%;border-radius:12px;border:1px solid var(--stroke);overflow:hidden}
+    .banner img{display:block;width:100%;height:auto}
+    .cookies{position:fixed;left:12px;right:12px;bottom:12px;background:#ffffff;border:1px solid var(--stroke);border-radius:14px;padding:12px;display:none;z-index:50}
+    .cookies.show{display:block}.cookies p{margin:0 0 8px;color:#3a2c61}.cookies .row{display:flex;gap:10px;flex-wrap:wrap}
+    .cookies a{color:var(--accent)}
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <header><h1>HORÓSCOPO DO DIA</h1></header>
+
+    <!-- HOME -->
+    <section id="home" class="view active">
+      <p style="color:var(--muted);margin:10px 0 16px">Escolha seu signo para ver as leituras de hoje.</p>
+      <div id="grid" class="grid"></div>
+    </section>
+
+    <!-- SIGN PAGE -->
+    <section id="signPage" class="view">
+      <button class="btn back" id="btnBack" aria-label="Voltar">VOLTAR</button>
+
+      <div class="sign-head">
+        <img id="signImg" alt="">
+        <div class="sign-title">
+          <h2 id="signName">Signo</h2>
+          <small id="signDates"></small>
+        </div>
+      </div>
+
+      <button id="btnStart" class="btn start">START • GERAR ANÁLISE DE HOJE</button>
+
+      <div class="section" id="sec-rel">
+        <h3>Relacionamentos</h3>
+        <div class="content" id="relacionamentos"><div class="skeleton"></div></div>
+        <div class="divider"></div>
+      </div>
+
+      <div class="section" id="sec-sor">
+        <h3>Sorte</h3>
+        <div class="content" id="sorte"><div class="skeleton"></div></div>
+
+        <!-- BANNER: só aparece após gerar -->
+        <div class="banner-wrap" id="bannerWrap">
+          <a class="banner" href="https://asa.bet" target="_blank" rel="noopener">
+            <img src="https://i.postimg.cc/05Hxmh95/i-Screen-Shoter-Google-Chrome-250830122200.jpg" alt="Oferta especial: cadastre-se e deposite 20 para ganhar giros grátis e bônus">
+          </a>
+        </div>
+        <div class="divider"></div>
+      </div>
+
+      <div class="section" id="sec-tra">
+        <h3>Trabalho</h3>
+        <div class="content" id="trabalho"><div class="skeleton"></div></div>
+        <div class="divider"></div>
+      </div>
+
+      <div class="section" id="sec-ast">
+        <h3>Astral</h3>
+        <div class="content" id="astral"><div class="skeleton"></div></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Cookies -->
+  <div id="cookies" class="cookies">
+    <p>Usamos cookies e tecnologias semelhantes para personalizar sua experiência, medir e melhorar serviços e publicidade. Ao continuar, você concorda com nossa <a href="/privacidade" target="_blank" rel="noopener">Política de Privacidade</a> e <a href="/termos" target="_blank" rel="noopener">Termos de Uso</a>.</p>
+    <div class="row">
+      <button id="cookiesAccept" class="btn">PROSSEGUIR</button>
+      <a class="btn" href="/preferencias-cookies">PREFERÊNCIAS</a>
+    </div>
+  </div>
+
+  <script>
+    // ========= CONFIG =========
+    // Seu endpoint atual na Vercel (funcionando):
+    const API_URL = "https://appchines-horoscope-api.vercel.app/api/horoscope";
+    // Se mapear o subdomínio da API, troque por:
+    // const API_URL = "https://api.horoscopohoje.app/api/horoscope";
+
+    // ========= SIGNOS =========
+    const SIGNS = [
+      { id:"aries",nome:"Áries",datas:"21/03 a 19/04",img:"https://i.postimg.cc/cJcdPHw0/image.png"},
+      { id:"touro",nome:"Touro",datas:"20/04 a 20/05",img:"https://i.postimg.cc/m2FBBVCd/image.png"},
+      { id:"gemeos",nome:"Gêmeos",datas:"21/05 a 21/06",img:"https://i.postimg.cc/Gmwr2Yjb/image.png"},
+      { id:"cancer",nome:"Câncer",datas:"22/06 a 22/07",img:"https://i.postimg.cc/VNz898TT/image.png"},
+      { id:"leao",nome:"Leão",datas:"23/07 a 22/08",img:"https://i.postimg.cc/zvHZDXbL/image.png"},
+      { id:"virgem",nome:"Virgem",datas:"23/08 a 22/09",img:"https://i.postimg.cc/c1vrtRf3/image.png"},
+      { id:"libra",nome:"Libra",datas:"23/09 a 22/10",img:"https://i.postimg.cc/Qx5C0j4x/image.png"},
+      { id:"escorpiao",nome:"Escorpião",datas:"23/10 a 21/11",img:"https://i.postimg.cc/sxWj6JJ0/image.png"},
+      { id:"sagitario",nome:"Sagitário",datas:"22/11 a 21/12",img:"https://i.postimg.cc/1XDSc39k/image.png"},
+      { id:"capricornio",nome:"Capricórnio",datas:"22/12 a 19/01",img:"https://i.postimg.cc/htDnTnNY/image.png"},
+      { id:"aquario",nome:"Aquário",datas:"20/01 a 18/02",img:"https://i.postimg.cc/hGhqZrDb/image.png"},
+      { id:"peixes",nome:"Peixes",datas:"19/02 a 20/03",img:"https://i.postimg.cc/Y9WBMCmv/image.png"}
+    ];
+
+    // ========= ELEMENTOS =========
+    const grid=document.getElementById("grid"),homeView=document.getElementById("home"),signView=document.getElementById("signPage");
+    const btnBack=document.getElementById("btnBack"),btnStart=document.getElementById("btnStart");
+    const elName=document.getElementById("signName"),elDates=document.getElementById("signDates"),elImg=document.getElementById("signImg");
+    const elRel=document.getElementById("relacionamentos"),elSor=document.getElementById("sorte"),elTra=document.getElementById("trabalho"),elAst=document.getElementById("astral");
+    const bannerWrap=document.getElementById("bannerWrap");
+
+    function renderGrid(){ grid.innerHTML=""; SIGNS.forEach(s=>{ const a=document.createElement("a"); a.className="sign-tile"; a.href=`#/${s.id}`;
+      a.innerHTML=`<img src="${s.img}" alt="${s.nome}"><div class="sign-name">${s.nome}</div><div class="sign-dates">${s.datas}</div>`; grid.appendChild(a); }); }
+
+    function setView(hash){ const id=(hash||"").replace("#/","").trim(); const s=SIGNS.find(x=>x.id===id);
+      if(s){ elName.textContent=s.nome; elDates.textContent=s.datas; elImg.src=s.img; elImg.alt=s.nome;
+        [elRel,elSor,elTra,elAst].forEach(el=>el.innerHTML=`<div class="skeleton"></div>`);
+        btnStart.disabled=false; if(bannerWrap) bannerWrap.style.display="none";
+        homeView.classList.remove("active"); signView.classList.add("active"); }
+      else{ signView.classList.remove("active"); homeView.classList.add("active"); } }
+    window.addEventListener("hashchange",()=>setView(location.hash));
+    btnBack.addEventListener("click",()=>{ location.hash=""; });
+
+    btnStart.addEventListener("click",async()=>{
+      const id=(location.hash||"").replace("#/",""); const s=SIGNS.find(x=>x.id===id); if(!s) return;
+      btnStart.disabled=true; const ok=await generateAnalysis(s.id,s.nome); btnStart.disabled=false; if(ok && bannerWrap) bannerWrap.style.display="block";
+    });
+
+    function todayISO(){ return new Date().toISOString().slice(0,10); }
+    function cacheKey(signId){ return `horo:${todayISO()}:${signId}`; }
+
+    async function generateAnalysis(signId, signName){
+      const key=cacheKey(signId), cached=localStorage.getItem(key);
+      if(cached){ try{ paintSections(JSON.parse(cached)); return true; }catch{} }
+
+      const body={ sign:signId, sign_label:signName, date:todayISO() };
+      try{
+        const res=await fetch(API_URL,{ method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify(body) });
+        if(!res.ok) throw new Error("Falha na API");
+        const data=await res.json();
+        const filled={ relacionamentos:data.relacionamentos||"", sorte:data.sorte||"", trabalho:data.trabalho||"", astral:data.astral||"" };
+        paintSections(filled); localStorage.setItem(key,JSON.stringify(filled)); return true;
+      }catch(err){ paintError(); console.error(err); return false; }
+    }
+
+    function paintSections(d){ elRel.textContent=d.relacionamentos; elSor.textContent=d.sorte; elTra.textContent=d.trabalho; elAst.textContent=d.astral; }
+    function paintError(){ const msg="Não foi possível gerar a análise agora. Tente novamente em instantes."; [elRel,elSor,elTra,elAst].forEach(el=>el.textContent=msg); }
+
+    // Cookies
+    const cookiesBox=document.getElementById("cookies"), cookiesAccept=document.getElementById("cookiesAccept"), COOKIE_KEY="cookieConsent";
+    function checkCookies(){ if(!localStorage.getItem(COOKIE_KEY)) cookiesBox.classList.add("show"); }
+    cookiesAccept?.addEventListener("click",()=>{ localStorage.setItem(COOKIE_KEY, JSON.stringify({acceptedAt:Date.now()})); cookiesBox.classList.remove("show"); });
+
+    renderGrid(); setView(location.hash); checkCookies();
+  </script>
+</body>
+</html>
